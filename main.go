@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -128,7 +129,12 @@ func sendToTelegram(bot *tgbotapi.BotAPI, channelID string, post Post, analysis 
 }
 
 func getTrumpPosts() ([]Post, error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			// This enables automatic decompression
+			DisableCompression: false,
+		},
+	}
 
 	url := fmt.Sprintf("%s/accounts/%s/statuses", truthSocialAPI, trumpAccountID)
 
@@ -146,7 +152,11 @@ func getTrumpPosts() ([]Post, error) {
 
 	// Set headers
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "TrumpAlert/1.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+	// Explicitly request gzip encoding
+	req.Header.Set("Accept-Encoding", "gzip")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Host", "truthsocial.com")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -154,17 +164,53 @@ func getTrumpPosts() ([]Post, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	// Check status code
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned non-200 status code: %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	// Read the response body
+	var reader io.ReadCloser
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error creating gzip reader: %w", err)
+		}
+		defer reader.Close()
+	default:
+		reader = resp.Body
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
 
+	// Debug: Print first 100 characters of response
+	if len(body) > 0 {
+		previewLen := 100
+		if len(body) < previewLen {
+			previewLen = len(body)
+		}
+		log.Printf("Response preview: %s", string(body[:previewLen]))
+	}
+
 	var posts []Post
 	if err := json.Unmarshal(body, &posts); err != nil {
-		return nil, fmt.Errorf("error unmarshaling JSON: %w", err)
+		return nil, fmt.Errorf("error unmarshaling JSON: %w, body starts with: %s", err, string(body[:min(100, len(body))]))
 	}
 
 	return posts, nil
+}
+
+// Helper function for min
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func main() {
@@ -190,11 +236,14 @@ func main() {
 	}
 	defer geminiClient.Close()
 
+	log.Printf("Fetching Trump posts from %s/accounts/%s/statuses", truthSocialAPI, trumpAccountID)
 	posts, err := getTrumpPosts()
 	if err != nil {
 		log.Printf("Error fetching posts: %v", err)
+		return
 	}
 
+	log.Printf("Successfully fetched %d posts", len(posts))
 	for _, post := range posts {
 		if !isProcessed(supabase, post.ID) {
 			cleanContent := stripHTMLTags(post.Content)
