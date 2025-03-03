@@ -1,5 +1,7 @@
 # TrumpAlert
 
+![TrumpAlert Logo](./trump-alert-logo.png)
+
 A tool that monitors Donald Trump's Truth Social posts, analyzes their potential impact on cryptocurrency markets, and sends the analysis to a Telegram channel.
 
 ## Features
