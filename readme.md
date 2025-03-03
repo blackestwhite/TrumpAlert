@@ -15,11 +15,11 @@ A tool that monitors Donald Trump's Truth Social posts, analyzes their potential
 1. Clone the repository
 2. Install dependencies: `go mod tidy`
 3. Create a `.env` file with:
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_CHANNEL_ID=@your_channel_name
-GOOGLE_AI_STUDIO_API_KEY=your_gemini_api_key
+- SUPABASE_URL=your_supabase_url
+- SUPABASE_KEY=your_supabase_key
+- TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+- TELEGRAM_CHANNEL_ID=@your_channel_name
+- GOOGLE_AI_STUDIO_API_KEY=your_gemini_api_key
 4. Create a `processed_posts` table in Supabase
 5. Run with: `go run main.go`
 
