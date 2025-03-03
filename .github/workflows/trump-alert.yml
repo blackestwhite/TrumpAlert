@@ -1,6 +1,8 @@
 name: Trump Alert Bot
 
 on:
+  push:
+    branches: [ master ]
   schedule:
     - cron: '*/3 * * * *'  # Run every 3 minutes
   workflow_dispatch:  # Allow manual triggers
