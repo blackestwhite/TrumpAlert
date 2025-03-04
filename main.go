@@ -117,7 +117,17 @@ func stripHTMLTags(input string) string {
 
 func sendToTelegram(bot *tgbotapi.BotAPI, channelID string, post Post, analysis string) error {
 	cleanContent := stripHTMLTags(post.Content)
-	message := fmt.Sprintf("🔔 پست جدید ترامپ:\n\n%s\n\n📊 تحلیل تأثیر بر بازار رمزارز:\n%s\n\n🔗 لینک: %s",
+	message := fmt.Sprintf(`🔔 پست جدید ترامپ:
+%s
+
+📊 تحلیل تأثیر بر بازار رمزارز:
+%s
+
+🔗 لینک: 
+%s
+
+این مطلب توسط هوش مصنوعی بررسی شده است و توصیه مالی نیست.
+`,
 		cleanContent, analysis, post.URL)
 
 	msg := tgbotapi.NewMessageToChannel(channelID, message)
