@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   schedule:
-    - cron: '*/5 * * * *'  # Run every 3 minutes
+    - cron: '*/10 * * * *'
   workflow_dispatch:  # Allow manual triggers
 
 jobs:
