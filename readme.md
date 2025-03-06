@@ -27,4 +27,4 @@ A tool that monitors Donald Trump's Truth Social posts, analyzes their potential
 
 ## Deployment
 
-Can be deployed using GitHub Actions with a workflow that runs every 3 minutes.
+Can be deployed using GitHub Actions with a workflow that runs every 10 minutes.
