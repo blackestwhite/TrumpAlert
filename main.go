@@ -48,16 +48,20 @@ type ProcessedPost struct {
 }
 
 func analyzePost(client *genai.Client, post Post) (string, error) {
-	model := client.GenerativeModel("gemini-2.0-flash-exp")
-	prompt := fmt.Sprintf(`تحلیل کن که این پست ترامپ در Truth Social چه تأثیری بر بازار رمزارز می‌تواند داشته باشد. آیا این پست برای بازار رمزارز مفید، مضر یا خنثی است؟ دلایل خود را توضیح دهید. پاسخ را به فارسی و بدون استفاده از مارک‌داون یا فرمت‌های خاص بنویسید چون قرار است در تلگرام نمایش داده شود. تحلیل شما نباید بیشتر از ۲ پاراگراف باشد.
+	model := client.GenerativeModel("gemini-2.0-flash-thinking-exp-01-21")
+	prompt := fmt.Sprintf(`ابتدا متن پست ترامپ را به فارسی ترجمه کن و سپس تحلیل کن که این پست در Truth Social چه تأثیری بر بازار رمزارز می‌تواند داشته باشد. آیا این پست برای بازار رمزارز مفید، مضر یا خنثی است؟ دلایل خود را توضیح دهید. پاسخ را به فارسی و بدون استفاده از مارک‌داون یا فرمت‌های خاص بنویسید چون قرار است در تلگرام نمایش داده شود. تحلیل شما نباید بیشتر از ۲ پاراگراف باشد.
 
 متن پست: %s
 تعامل: %d پاسخ، %d بازنشر، %d پسند
 زمان انتشار: %s
 
-تحلیل:`,
+پاسخ را به این صورت ارائه کن:
+ترجمه: [ترجمه متن پست به فارسی]
+
+تحلیل: [تحلیل تأثیر پست بر بازار رمزارز]`,
 		post.Content, post.RepliesCount, post.ReblogsCount, post.FavouritesCount, post.CreatedAt)
 
+	// Rest of the function remains the same
 	resp, err := model.GenerateContent(context.Background(), genai.Text(prompt))
 	if err != nil {
 		return "", err
